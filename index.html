@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Innerverse Global Chat</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #121212; color: white; margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        #app-container { width: 100%; max-width: 450px; height: 85vh; background: #1e1e1e; border-radius: 15px; display: flex; flex-direction: column; overflow: hidden; border: 1px solid #333; }
+        #login-screen { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%; gap: 20px; }
+        #chat-screen { display: none; flex-direction: column; height: 100%; }
+        #messages { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+        .msg { background: #333; padding: 8px 12px; border-radius: 12px; max-width: 80%; font-size: 14px; position: relative; }
+        .msg .sender { font-size: 10px; color: #aaa; margin-bottom: 4px; display: block; }
+        .msg.me { align-self: flex-end; background: #007bff; }
+        #input-area { display: flex; padding: 15px; background: #252525; gap: 10px; }
+        input { flex: 1; padding: 10px; border-radius: 20px; border: none; background: #333; color: white; outline: none; }
+        button { padding: 8px 15px; border-radius: 20px; border: none; background: #007bff; color: white; cursor: pointer; }
+        .google-btn { background: #db4437; padding: 12px 24px; font-weight: bold; border-radius: 5px; }
+    </style>
+</head>
+<body>
+
+<div id="app-container">
+    <div id="login-screen">
+        <h2>Innerverse Chat</h2>
+        <button class="google-btn" id="loginBtn">Login dengan Google</button>
+    </div>
+
+    <div id="chat-screen">
+        <div id="messages"></div>
+        <div id="input-area">
+            <input type="text" id="msgInput" placeholder="Ketik pesan..." autocomplete="off">
+            <button id="sendBtn">Kirim</button>
+            <button id="logoutBtn" style="background: #444; font-size: 10px;">Keluar</button>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import { getDatabase, ref, push, onChildAdded, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+  import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+  // PASTE CONFIG ANDA DI SINI
+const firebaseConfig = {
+  apiKey: "AIzaSyDGwFXEHRArBauIOksrGmCgbC1fpVLkfMk",
+  authDomain: "globalchat-innerverse.firebaseapp.com",
+  databaseURL: "https://globalchat-innerverse-default-rtdb.firebaseio.com",
+  projectId: "globalchat-innerverse",
+  storageBucket: "globalchat-innerverse.firebasestorage.app",
+  messagingSenderId: "20520942010",
+  appId: "1:20520942010:web:9d65b58ce00b2df9834583",
+  measurementId: "G-ZFW3JJNGS5"
+};
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+  const auth = getAuth(app);
+  const provider = new GoogleAuthProvider();
+  const chatRef = ref(db, 'chats');
+
+  let currentUser = null;
+
+  // --- LOGIKA AUTH ---
+  document.getElementById('loginBtn').onclick = () => signInWithPopup(auth, provider);
+  document.getElementById('logoutBtn').onclick = () => signOut(auth);
+
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      currentUser = user;
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('chat-screen').style.display = 'flex';
+    } else {
+      document.getElementById('login-screen').style.display = 'flex';
+      document.getElementById('chat-screen').style.display = 'none';
+    }
+  });
+
+  // --- LOGIKA CHAT ---
+  const sendMessage = () => {
+    const text = document.getElementById('msgInput').value;
+    if (text.trim() && currentUser) {
+      push(chatRef, {
+        text: text,
+        sender: currentUser.displayName,
+        uid: currentUser.uid,
+        timestamp: serverTimestamp()
+      });
+      document.getElementById('msgInput').value = '';
+    }
+  };
+
+  document.getElementById('sendBtn').onclick = sendMessage;
+
+  onChildAdded(chatRef, (snapshot) => {
+    const data = snapshot.val();
+    const div = document.createElement('div');
+    div.classList.add('msg');
+    if (currentUser && data.uid === currentUser.uid) div.classList.add('me');
+    
+    div.innerHTML = `<span class="sender">${data.sender}</span>${data.text}`;
+    document.getElementById('messages').appendChild(div);
+    document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
+  });
+</script>
+</body>
+</html>
