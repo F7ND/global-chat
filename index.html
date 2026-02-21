@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Innerverse - Global Chat</title>
+    <title>Fandev - Global Chat</title>
     <style>
         :root {
             --primary: #007bff;
@@ -169,15 +169,16 @@
   import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
   // --- CONFIGURASI FIREBASE ---
-  const firebaseConfig = {
-    apiKey: "PASTE_API_KEY_ANDA",
-    authDomain: "globalchat-innerverse.firebaseapp.com",
-    databaseURL: "https://globalchat-innerverse-default-rtdb.firebaseio.com",
-    projectId: "globalchat-innerverse",
-    storageBucket: "globalchat-innerverse.appspot.com",
-    messagingSenderId: "PASTE_SENDER_ID",
-    appId: "PASTE_APP_ID"
-  };
+const firebaseConfig = {
+  apiKey: "AIzaSyDGwFXEHRArBauIOksrGmCgbC1fpVLkfMk",
+  authDomain: "globalchat-innerverse.firebaseapp.com",
+  databaseURL: "https://globalchat-innerverse-default-rtdb.firebaseio.com",
+  projectId: "globalchat-innerverse",
+  storageBucket: "globalchat-innerverse.firebasestorage.app",
+  messagingSenderId: "20520942010",
+  appId: "1:20520942010:web:9d65b58ce00b2df9834583",
+  measurementId: "G-ZFW3JJNGS5"
+};
 
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
@@ -251,3 +252,4 @@
 </script>
 </body>
 </html>
+
