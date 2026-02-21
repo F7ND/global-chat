@@ -3,56 +3,181 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Innerverse Global Chat</title>
+    <title>Innerverse - Global Chat</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #121212; color: white; margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
-        #app-container { width: 100%; max-width: 450px; height: 85vh; background: #1e1e1e; border-radius: 15px; display: flex; flex-direction: column; overflow: hidden; border: 1px solid #333; }
-        #login-screen { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%; gap: 20px; }
+        :root {
+            --primary: #007bff;
+            --bg-dark: #121212;
+            --card-dark: #1e1e1e;
+            --text-main: #e0e0e0;
+        }
+
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: var(--bg-dark); 
+            color: var(--text-main); 
+            margin: 0; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+        }
+
+        #app-container { 
+            width: 100%; 
+            max-width: 450px; 
+            height: 90vh; 
+            background: var(--card-dark); 
+            border-radius: 15px; 
+            display: flex; 
+            flex-direction: column; 
+            overflow: hidden; 
+            border: 1px solid #333; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        /* Layar Login */
+        #login-screen { 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100%; 
+            text-align: center;
+        }
+
+        .google-btn { 
+            background: #fff; 
+            color: #000; 
+            padding: 12px 24px; 
+            font-weight: bold; 
+            border-radius: 5px; 
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: 0.3s;
+        }
+
+        .google-btn:hover { background: #ddd; }
+
+        /* Layar Chat */
         #chat-screen { display: none; flex-direction: column; height: 100%; }
-        #messages { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
-        .msg { background: #333; padding: 8px 12px; border-radius: 12px; max-width: 80%; font-size: 14px; position: relative; }
-        .msg .sender { font-size: 10px; color: #aaa; margin-bottom: 4px; display: block; }
-        .msg.me { align-self: flex-end; background: #007bff; }
-        #input-area { display: flex; padding: 15px; background: #252525; gap: 10px; }
-        input { flex: 1; padding: 10px; border-radius: 20px; border: none; background: #333; color: white; outline: none; }
-        button { padding: 8px 15px; border-radius: 20px; border: none; background: #007bff; color: white; cursor: pointer; }
-        .google-btn { background: #db4437; padding: 12px 24px; font-weight: bold; border-radius: 5px; }
+
+        #messages { 
+            flex: 1; 
+            padding: 15px; 
+            overflow-y: auto; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 12px;
+            scroll-behavior: smooth;
+        }
+
+        .msg { 
+            background: #333; 
+            padding: 10px 14px; 
+            border-radius: 15px; 
+            max-width: 75%; 
+            word-wrap: break-word; 
+            font-size: 14px; 
+            align-self: flex-start;
+        }
+
+        .msg.me { 
+            align-self: flex-end; 
+            background: var(--primary); 
+            color: white; 
+        }
+
+        .sender { 
+            font-size: 10px; 
+            font-weight: bold;
+            color: #aaa; 
+            margin-bottom: 4px; 
+            display: block; 
+        }
+
+        .msg.me .sender { color: #d0e7ff; }
+
+        #input-area { 
+            display: flex; 
+            padding: 15px; 
+            background: #252525; 
+            gap: 10px; 
+            border-top: 1px solid #333;
+        }
+
+        input { 
+            flex: 1; 
+            padding: 10px 15px; 
+            border-radius: 20px; 
+            border: none; 
+            background: #333; 
+            color: white; 
+            outline: none; 
+        }
+
+        button#sendBtn { 
+            background: var(--primary); 
+            border: none; 
+            color: white; 
+            border-radius: 50%; 
+            width: 40px; 
+            height: 40px; 
+            cursor: pointer;
+        }
+
+        #logoutBtn {
+            background: transparent;
+            color: #ff4444;
+            border: none;
+            cursor: pointer;
+            font-size: 12px;
+        }
     </style>
 </head>
 <body>
 
 <div id="app-container">
     <div id="login-screen">
-        <h2>Innerverse Chat</h2>
-        <button class="google-btn" id="loginBtn">Login dengan Google</button>
+        <h1 style="color: var(--primary)">innerverse</h1>
+        <p>Global Community Chat</p>
+        <button class="google-btn" id="loginBtn">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18">
+            Sign in with Google
+        </button>
     </div>
 
     <div id="chat-screen">
+        <div style="padding: 10px; background: #252525; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333;">
+            <span id="userName" style="font-weight: bold; font-size: 14px;"></span>
+            <button id="logoutBtn">Logout</button>
+        </div>
         <div id="messages"></div>
         <div id="input-area">
             <input type="text" id="msgInput" placeholder="Ketik pesan..." autocomplete="off">
-            <button id="sendBtn">Kirim</button>
-            <button id="logoutBtn" style="background: #444; font-size: 10px;">Keluar</button>
+            <button id="sendBtn">➤</button>
         </div>
     </div>
 </div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getDatabase, ref, push, onChildAdded, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+  import { getDatabase, ref, push, onChildAdded, serverTimestamp, query, limitToLast } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
   import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-  // PASTE CONFIG ANDA DI SINI
-const firebaseConfig = {
-  apiKey: "AIzaSyDGwFXEHRArBauIOksrGmCgbC1fpVLkfMk",
-  authDomain: "globalchat-innerverse.firebaseapp.com",
-  databaseURL: "https://globalchat-innerverse-default-rtdb.firebaseio.com",
-  projectId: "globalchat-innerverse",
-  storageBucket: "globalchat-innerverse.firebasestorage.app",
-  messagingSenderId: "20520942010",
-  appId: "1:20520942010:web:9d65b58ce00b2df9834583",
-  measurementId: "G-ZFW3JJNGS5"
-};
+  // --- CONFIGURASI FIREBASE ---
+  const firebaseConfig = {
+    apiKey: "PASTE_API_KEY_ANDA",
+    authDomain: "globalchat-innerverse.firebaseapp.com",
+    databaseURL: "https://globalchat-innerverse-default-rtdb.firebaseio.com",
+    projectId: "globalchat-innerverse",
+    storageBucket: "globalchat-innerverse.appspot.com",
+    messagingSenderId: "PASTE_SENDER_ID",
+    appId: "PASTE_APP_ID"
+  };
 
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
@@ -69,18 +194,20 @@ const firebaseConfig = {
   onAuthStateChanged(auth, (user) => {
     if (user) {
       currentUser = user;
+      document.getElementById('userName').textContent = `Hello, ${user.displayName.split(' ')[0]}`;
       document.getElementById('login-screen').style.display = 'none';
       document.getElementById('chat-screen').style.display = 'flex';
     } else {
       document.getElementById('login-screen').style.display = 'flex';
       document.getElementById('chat-screen').style.display = 'none';
+      document.getElementById('messages').innerHTML = ''; // Bersihkan layar saat logout
     }
   });
 
   // --- LOGIKA CHAT ---
   const sendMessage = () => {
-    const text = document.getElementById('msgInput').value;
-    if (text.trim() && currentUser) {
+    const text = document.getElementById('msgInput').value.trim();
+    if (text && currentUser) {
       push(chatRef, {
         text: text,
         sender: currentUser.displayName,
@@ -92,16 +219,34 @@ const firebaseConfig = {
   };
 
   document.getElementById('sendBtn').onclick = sendMessage;
+  document.getElementById('msgInput').onkeypress = (e) => { if (e.key === 'Enter') sendMessage(); };
 
-  onChildAdded(chatRef, (snapshot) => {
+  // Render Pesan (Hanya ambil 50 terakhir agar tidak berat)
+  const recentMessagesQuery = query(chatRef, limitToLast(50));
+
+  onChildAdded(recentMessagesQuery, (snapshot) => {
     const data = snapshot.val();
+    const messagesDiv = document.getElementById('messages');
+    
     const div = document.createElement('div');
     div.classList.add('msg');
     if (currentUser && data.uid === currentUser.uid) div.classList.add('me');
     
-    div.innerHTML = `<span class="sender">${data.sender}</span>${data.text}`;
-    document.getElementById('messages').appendChild(div);
-    document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
+    // Keamanan: Gunakan textContent untuk input user guna mencegah XSS
+    const senderSpan = document.createElement('span');
+    senderSpan.classList.add('sender');
+    senderSpan.textContent = data.sender;
+
+    const textSpan = document.createElement('span');
+    textSpan.textContent = data.text;
+
+    div.appendChild(senderSpan);
+    div.appendChild(textSpan);
+    
+    messagesDiv.appendChild(div);
+
+    // AUTO-SCROLL
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
   });
 </script>
 </body>
