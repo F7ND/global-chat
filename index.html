@@ -3,19 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fandev - Global Chat</title>
+    <title>Innerverse Global Chat</title>
     <style>
         :root {
             --primary: #007bff;
-            --bg-dark: #121212;
-            --card-dark: #1e1e1e;
-            --text-main: #e0e0e0;
+            --bg: #121212;
+            --card: #1e1e1e;
+            --text: #e0e0e0;
         }
 
         body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            background: var(--bg-dark); 
-            color: var(--text-main); 
+            font-family: 'Segoe UI', sans-serif; 
+            background: var(--bg); 
+            color: var(--text); 
             margin: 0; 
             display: flex; 
             justify-content: center; 
@@ -27,23 +27,22 @@
             width: 100%; 
             max-width: 450px; 
             height: 90vh; 
-            background: var(--card-dark); 
+            background: var(--card); 
             border-radius: 15px; 
             display: flex; 
             flex-direction: column; 
             overflow: hidden; 
             border: 1px solid #333; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
 
-        /* Layar Login */
+        /* Login Screen */
         #login-screen { 
             display: flex; 
             flex-direction: column; 
             justify-content: center; 
             align-items: center; 
             height: 100%; 
-            text-align: center;
+            gap: 15px;
         }
 
         .google-btn { 
@@ -57,13 +56,19 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            transition: 0.3s;
         }
 
-        .google-btn:hover { background: #ddd; }
-
-        /* Layar Chat */
+        /* Chat Screen */
         #chat-screen { display: none; flex-direction: column; height: 100%; }
+
+        header {
+            padding: 15px;
+            background: #252525;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #333;
+        }
 
         #messages { 
             flex: 1; 
@@ -79,9 +84,8 @@
             background: #333; 
             padding: 10px 14px; 
             border-radius: 15px; 
-            max-width: 75%; 
+            max-width: 80%; 
             word-wrap: break-word; 
-            font-size: 14px; 
             align-self: flex-start;
         }
 
@@ -106,13 +110,12 @@
             padding: 15px; 
             background: #252525; 
             gap: 10px; 
-            border-top: 1px solid #333;
         }
 
         input { 
             flex: 1; 
-            padding: 10px 15px; 
-            border-radius: 20px; 
+            padding: 12px; 
+            border-radius: 25px; 
             border: none; 
             background: #333; 
             color: white; 
@@ -128,36 +131,28 @@
             height: 40px; 
             cursor: pointer;
         }
-
-        #logoutBtn {
-            background: transparent;
-            color: #ff4444;
-            border: none;
-            cursor: pointer;
-            font-size: 12px;
-        }
     </style>
 </head>
 <body>
 
 <div id="app-container">
     <div id="login-screen">
-        <h1 style="color: var(--primary)">innerverse</h1>
-        <p>Global Community Chat</p>
+        <h1 style="color: var(--primary); margin:0;">innerverse</h1>
+        <p>Community Chat</p>
         <button class="google-btn" id="loginBtn">
             <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18">
-            Sign in with Google
+            Login with Google
         </button>
     </div>
 
     <div id="chat-screen">
-        <div style="padding: 10px; background: #252525; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333;">
-            <span id="userName" style="font-weight: bold; font-size: 14px;"></span>
-            <button id="logoutBtn">Logout</button>
-        </div>
+        <header>
+            <span id="userName" style="font-size: 14px; font-weight: bold;"></span>
+            <button id="logoutBtn" style="background:transparent; color:#ff4444; border:none; cursor:pointer;">Logout</button>
+        </header>
         <div id="messages"></div>
         <div id="input-area">
-            <input type="text" id="msgInput" placeholder="Ketik pesan..." autocomplete="off">
+            <input type="text" id="msgInput" placeholder="Tulis pesan..." autocomplete="off">
             <button id="sendBtn">➤</button>
         </div>
     </div>
@@ -165,10 +160,10 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getDatabase, ref, push, onChildAdded, serverTimestamp, query, limitToLast } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+  import { getDatabase, ref, push, onChildAdded, serverTimestamp, query, limitToLast, off } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
   import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-  // --- CONFIGURASI FIREBASE ---
+  // --- CONFIGURASI ANDA ---
 const firebaseConfig = {
   apiKey: "AIzaSyDGwFXEHRArBauIOksrGmCgbC1fpVLkfMk",
   authDomain: "globalchat-innerverse.firebaseapp.com",
@@ -187,69 +182,90 @@ const firebaseConfig = {
   const chatRef = ref(db, 'chats');
 
   let currentUser = null;
+  let chatInitialized = false;
 
-  // --- LOGIKA AUTH ---
-  document.getElementById('loginBtn').onclick = () => signInWithPopup(auth, provider);
+  // --- AUTH LOGIC ---
+  document.getElementById('loginBtn').onclick = () => signInWithPopup(auth, provider).catch(err => console.error(err));
   document.getElementById('logoutBtn').onclick = () => signOut(auth);
 
   onAuthStateChanged(auth, (user) => {
+    const loginScreen = document.getElementById('login-screen');
+    const chatScreen = document.getElementById('chat-screen');
+    const messagesDiv = document.getElementById('messages');
+
     if (user) {
       currentUser = user;
-      document.getElementById('userName').textContent = `Hello, ${user.displayName.split(' ')[0]}`;
-      document.getElementById('login-screen').style.display = 'none';
-      document.getElementById('chat-screen').style.display = 'flex';
+      document.getElementById('userName').textContent = user.displayName;
+      loginScreen.style.display = 'none';
+      chatScreen.style.display = 'flex';
+      
+      // Jalankan listener pesan HANYA JIKA sudah login
+      if (!chatInitialized) {
+        startChatListener();
+        chatInitialized = true;
+      }
     } else {
-      document.getElementById('login-screen').style.display = 'flex';
-      document.getElementById('chat-screen').style.display = 'none';
-      document.getElementById('messages').innerHTML = ''; // Bersihkan layar saat logout
+      currentUser = null;
+      chatInitialized = false;
+      loginScreen.style.display = 'flex';
+      chatScreen.style.display = 'none';
+      messagesDiv.innerHTML = ''; // Hapus pesan dari layar saat logout
+      off(chatRef); // Matikan listener agar tidak memakan memori
     }
   });
 
-  // --- LOGIKA CHAT ---
-  const sendMessage = () => {
-    const text = document.getElementById('msgInput').value.trim();
-    if (text && currentUser) {
+  // --- CHAT LOGIC ---
+  function startChatListener() {
+    const q = query(chatRef, limitToLast(50));
+    
+    onChildAdded(q, (snapshot) => {
+      const data = snapshot.val();
+      renderMessage(data);
+    });
+  }
+
+  function renderMessage(data) {
+    const messagesDiv = document.getElementById('messages');
+    const div = document.createElement('div');
+    div.classList.add('msg');
+    
+    if (currentUser && data.uid === currentUser.uid) {
+      div.classList.add('me');
+    }
+
+    // Gunakan textContent untuk keamanan (Anti-XSS)
+    const sender = document.createElement('span');
+    sender.className = 'sender';
+    sender.textContent = data.sender || 'Anonymous';
+
+    const text = document.createElement('span');
+    text.textContent = data.text;
+
+    div.appendChild(sender);
+    div.appendChild(text);
+    messagesDiv.appendChild(div);
+
+    // Auto-scroll ke bawah
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+  }
+
+  const sendMsg = () => {
+    const input = document.getElementById('msgInput');
+    const val = input.value.trim();
+    if (val && currentUser) {
       push(chatRef, {
-        text: text,
+        text: val,
         sender: currentUser.displayName,
         uid: currentUser.uid,
         timestamp: serverTimestamp()
       });
-      document.getElementById('msgInput').value = '';
+      input.value = '';
     }
   };
 
-  document.getElementById('sendBtn').onclick = sendMessage;
-  document.getElementById('msgInput').onkeypress = (e) => { if (e.key === 'Enter') sendMessage(); };
-
-  // Render Pesan (Hanya ambil 50 terakhir agar tidak berat)
-  const recentMessagesQuery = query(chatRef, limitToLast(50));
-
-  onChildAdded(recentMessagesQuery, (snapshot) => {
-    const data = snapshot.val();
-    const messagesDiv = document.getElementById('messages');
-    
-    const div = document.createElement('div');
-    div.classList.add('msg');
-    if (currentUser && data.uid === currentUser.uid) div.classList.add('me');
-    
-    // Keamanan: Gunakan textContent untuk input user guna mencegah XSS
-    const senderSpan = document.createElement('span');
-    senderSpan.classList.add('sender');
-    senderSpan.textContent = data.sender;
-
-    const textSpan = document.createElement('span');
-    textSpan.textContent = data.text;
-
-    div.appendChild(senderSpan);
-    div.appendChild(textSpan);
-    
-    messagesDiv.appendChild(div);
-
-    // AUTO-SCROLL
-    messagesDiv.scrollTop = messagesDiv.scrollHeight;
-  });
+  document.getElementById('sendBtn').onclick = sendMsg;
+  document.getElementById('msgInput').onkeypress = (e) => { if(e.key === 'Enter') sendMsg(); };
 </script>
+
 </body>
 </html>
-
