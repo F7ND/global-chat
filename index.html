@@ -3,309 +3,133 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Innerverse Global Chat</title>
-<style>
-  :root{
-    --accent:#2dd4bf;          /* teal modern */
-    --accent2:#60a5fa;         /* blue highlight */
-    --bg:#0b0f14;              /* app background */
-    --panel:#0f1720;           /* chat panel */
-    --header:#0c141b;          /* header */
-    --border:rgba(255,255,255,.08);
-    --text:#e6edf3;
-    --muted:rgba(230,237,243,.65);
+    <title>Innerverse Chat - Signature Edition</title>
+    <style>
+        :root {
+            --bg-gradient: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            --glass: rgba(255, 255, 255, 0.05);
+            --accent: #00d2ff;
+            --me-gradient: linear-gradient(135deg, #00d2ff, #3a7bd5);
+            --text: #f0f0f0;
+        }
 
-    --bubble-me: linear-gradient(135deg, rgba(45,212,191,.95), rgba(96,165,250,.85));
-    --bubble-other: rgba(255,255,255,.07);
+        body { 
+            font-family: 'Inter', -apple-system, sans-serif; 
+            background: var(--bg-gradient); 
+            background-attachment: fixed;
+            color: var(--text); 
+            margin: 0; 
+            display: flex; justify-content: center; align-items: center; 
+            height: 100vh; 
+        }
 
-    --shadow: 0 12px 40px rgba(0,0,0,.55);
-    --shadow-soft: 0 8px 18px rgba(0,0,0,.35);
-    --radius: 18px;
-  }
+        #app-container { 
+            width: 100%; max-width: 480px; height: 92vh; 
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 24px;
+            display: flex; flex-direction: column; 
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
 
-  *{ box-sizing:border-box; }
-  html,body{ height:100%; }
+        /* Login */
+        #login-screen { 
+            position: absolute; width: 100%; height: 100%; z-index: 20;
+            background: #0f0c29; display: flex; flex-direction: column; 
+            justify-content: center; align-items: center;
+        }
 
-  body{
-    margin:0;
-    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, "Noto Sans", "Apple Color Emoji","Segoe UI Emoji";
-    background:
-      radial-gradient(1200px 600px at 30% 0%, rgba(96,165,250,.12), transparent 55%),
-      radial-gradient(900px 500px at 90% 20%, rgba(45,212,191,.10), transparent 60%),
-      var(--bg);
-    color:var(--text);
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    padding:18px;
-  }
+        .btn-glow {
+            background: var(--me-gradient); color: white; border: none;
+            padding: 15px 30px; border-radius: 12px; font-weight: bold;
+            cursor: pointer; box-shadow: 0 0 20px rgba(0, 210, 255, 0.4);
+            transition: 0.3s;
+        }
 
-  #app-container{
-    width:min(980px, 100%);
-    max-width: 520px;         /* mobile-first */
-    height:min(92vh, 820px);
-    background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
-    border:1px solid var(--border);
-    border-radius: 26px;
-    overflow:hidden;
-    box-shadow: var(--shadow);
-    backdrop-filter: blur(10px);
-    display:flex;
-    flex-direction:column;
-  }
+        /* Header */
+        header {
+            padding: 20px; background: rgba(0,0,0,0.2);
+            display: flex; align-items: center; gap: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
 
-  /* LOGIN */
-  #login-screen{
-    height:100%;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-    gap:14px;
-    padding:28px;
-    text-align:center;
-  }
-  #login-screen h1{
-    margin:0;
-    font-size:34px;
-    letter-spacing:.2px;
-    background: linear-gradient(90deg, var(--accent), var(--accent2));
-    -webkit-background-clip:text;
-    background-clip:text;
-    color:transparent;
-  }
-  #login-screen p{
-    margin:0;
-    color:var(--muted);
-    font-size:14px;
-  }
+        .avatar { width: 45px; height: 45px; border-radius: 14px; object-fit: cover; border: 2px solid var(--accent); }
 
-  .google-btn{
-    width: min(340px, 100%);
-    background: rgba(255,255,255,.92);
-    color:#0b0f14;
-    padding:12px 16px;
-    border-radius: 14px;
-    border: 0;
-    cursor:pointer;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    gap:12px;
-    font-weight: 700;
-    box-shadow: var(--shadow-soft);
-    transition: transform .12s ease, filter .12s ease;
-  }
-  .google-btn:hover{ transform: translateY(-1px); filter: brightness(1.02); }
-  .google-btn:active{ transform: translateY(0px) scale(.99); }
+        /* Chat Area */
+        #messages { 
+            flex: 1; padding: 20px; overflow-y: auto; 
+            display: flex; flex-direction: column; gap: 15px; 
+        }
 
-  /* CHAT */
-  #chat-screen{
-    display:none;
-    height:100%;
-    flex-direction:column;
-    background: var(--panel);
-  }
+        .msg-row { display: flex; gap: 10px; align-items: flex-end; }
+        .msg-row.me { flex-direction: row-reverse; }
 
-  header{
-    background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
-    border-bottom: 1px solid var(--border);
-    padding: 14px 14px;
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:10px;
-  }
+        .mini-avatar { width: 28px; height: 28px; border-radius: 8px; margin-bottom: 5px; }
 
-  #userName{
-    display:flex;
-    align-items:center;
-    gap:10px;
-    font-weight:800;
-    font-size:14px;
-    letter-spacing:.2px;
-  }
+        .bubble { 
+            padding: 12px 16px; border-radius: 18px; max-width: 70%; 
+            font-size: 14px; line-height: 1.5; position: relative;
+            background: rgba(255,255,255,0.1);
+        }
 
-  /* avatar bubble */
-  #userName::before{
-    content:"";
-    width:34px;height:34px;
-    border-radius: 12px;
-    background: linear-gradient(135deg, rgba(45,212,191,.8), rgba(96,165,250,.75));
-    box-shadow: 0 8px 16px rgba(0,0,0,.35);
-    display:inline-block;
-  }
+        .msg-row.me .bubble { 
+            background: var(--me-gradient); 
+            border-bottom-right-radius: 4px;
+            color: white;
+            box-shadow: 0 4px 15px rgba(0, 210, 255, 0.2);
+        }
 
-  #logoutBtn{
-    background: rgba(255,255,255,.06);
-    border: 1px solid var(--border);
-    color: rgba(255,85,85,.95);
-    padding: 8px 12px;
-    border-radius: 12px;
-    cursor:pointer;
-    font-weight:700;
-    transition: background .12s ease, transform .12s ease;
-  }
-  #logoutBtn:hover{ background: rgba(255,255,255,.09); }
-  #logoutBtn:active{ transform: scale(.99); }
+        .msg-row:not(.me) .bubble { 
+            background: rgba(255,255,255,0.1); 
+            border-bottom-left-radius: 4px; 
+        }
 
-  /* messages area with subtle pattern */
-  #messages{
-    flex:1;
-    padding: 16px 14px;
-    overflow-y:auto;
-    display:flex;
-    flex-direction:column;
-    gap: 10px;
+        .sender-tag { font-size: 10px; color: var(--accent); margin-bottom: 4px; display: block; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
 
-    background:
-      radial-gradient(circle at 20% 0%, rgba(45,212,191,.08), transparent 35%),
-      radial-gradient(circle at 90% 20%, rgba(96,165,250,.07), transparent 40%),
-      repeating-linear-gradient(45deg, rgba(255,255,255,.03) 0 2px, transparent 2px 10px);
-    background-blend-mode: screen;
-  }
+        /* Input Area */
+        #input-area { 
+            padding: 20px; background: rgba(0,0,0,0.3);
+            display: flex; gap: 12px;
+        }
 
-  /* nicer scrollbar */
-  #messages::-webkit-scrollbar{ width:10px; }
-  #messages::-webkit-scrollbar-thumb{
-    background: rgba(255,255,255,.10);
-    border-radius: 999px;
-    border: 2px solid rgba(0,0,0,0);
-    background-clip: padding-box;
-  }
+        input { 
+            flex: 1; padding: 14px 20px; border-radius: 14px; border: none; 
+            background: rgba(255,255,255,0.05); color: white; outline: none;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
 
-  .msg{
-    max-width: 82%;
-    padding: 10px 12px;
-    border-radius: 18px;
-    background: var(--bubble-other);
-    border: 1px solid rgba(255,255,255,.06);
-    box-shadow: 0 10px 22px rgba(0,0,0,.25);
-    align-self:flex-start;
-    position:relative;
-    overflow:hidden;
-  }
-
-  /* bubble “tail” */
-  .msg::after{
-    content:"";
-    position:absolute;
-    left:-6px;
-    bottom:10px;
-    width:14px;height:14px;
-    background: var(--bubble-other);
-    border-left: 1px solid rgba(255,255,255,.06);
-    border-bottom: 1px solid rgba(255,255,255,.06);
-    transform: rotate(45deg);
-  }
-
-  .msg.me{
-    align-self:flex-end;
-    background: var(--bubble-me);
-    color: #07111a;
-    border: 0;
-  }
-  .msg.me::after{
-    left:auto;
-    right:-6px;
-    background: linear-gradient(135deg, rgba(45,212,191,.95), rgba(96,165,250,.85));
-    border:0;
-    transform: rotate(45deg);
-  }
-
-  .sender{
-    display:block;
-    font-size: 11px;
-    font-weight: 800;
-    color: rgba(230,237,243,.75);
-    margin-bottom: 4px;
-    letter-spacing:.2px;
-  }
-  .msg.me .sender{ color: rgba(7,17,26,.75); }
-
-  .msg .text{
-    font-size: 14px;
-    line-height: 1.35;
-    white-space: pre-wrap;
-  }
-
-  /* timestamp (optional) */
-  .meta{
-    margin-top:6px;
-    display:flex;
-    justify-content:flex-end;
-    font-size: 11px;
-    color: rgba(230,237,243,.55);
-  }
-  .msg.me .meta{ color: rgba(7,17,26,.65); }
-
-  /* input bar like WhatsApp */
-  #input-area{
-    padding: 12px;
-    border-top: 1px solid var(--border);
-    background: linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.01));
-    display:flex;
-    gap: 10px;
-    align-items:center;
-  }
-
-  #msgInput{
-    flex:1;
-    padding: 12px 14px;
-    border-radius: 999px;
-    border: 1px solid rgba(255,255,255,.10);
-    background: rgba(0,0,0,.25);
-    color: var(--text);
-    outline:none;
-    font-size: 14px;
-    transition: border-color .12s ease, box-shadow .12s ease;
-  }
-  #msgInput:focus{
-    border-color: rgba(45,212,191,.55);
-    box-shadow: 0 0 0 3px rgba(45,212,191,.15);
-  }
-
-  #sendBtn{
-    width:44px;height:44px;
-    border-radius: 999px;
-    border: 0;
-    cursor:pointer;
-    color:#041018;
-    background: linear-gradient(135deg, rgba(45,212,191,.95), rgba(96,165,250,.90));
-    box-shadow: 0 10px 22px rgba(0,0,0,.35);
-    font-size: 16px;
-    transition: transform .12s ease, filter .12s ease;
-  }
-  #sendBtn:hover{ transform: translateY(-1px); filter: brightness(1.03); }
-  #sendBtn:active{ transform: translateY(0px) scale(.99); }
-
-  /* Responsive tweaks */
-  @media (max-width: 420px){
-    #app-container{ border-radius: 22px; }
-    .msg{ max-width: 88%; }
-  }
-</style>
+        #sendBtn { 
+            background: var(--me-gradient); border: none; color: white; 
+            border-radius: 14px; width: 50px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+        }
+    </style>
 </head>
 <body>
 
 <div id="app-container">
     <div id="login-screen">
-        <h1 style="color: var(--primary); margin:0;">innerverse</h1>
-        <p>Community Chat</p>
-        <button class="google-btn" id="loginBtn">
-            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18">
-            Login with Google
-        </button>
+        <h1 style="letter-spacing: 5px; font-weight: 900;">INNER<span style="color:var(--accent)">VERSE</span></h1>
+        <button class="btn-glow" id="loginBtn">ACCESS DATABASE</button>
     </div>
 
-    <div id="chat-screen">
+    <div id="chat-screen" style="display:none; flex-direction:column; height:100%;">
         <header>
-            <span id="userName" style="font-size: 14px; font-weight: bold;"></span>
-            <button id="logoutBtn" style="background:transparent; color:#ff4444; border:none; cursor:pointer;">Logout</button>
+            <img id="myAvatar" class="avatar" src="">
+            <div style="flex:1">
+                <div id="myName" style="font-weight:bold; letter-spacing: 1px;"></div>
+                <div style="font-size:10px; color:var(--accent)">● SECURE CONNECTION</div>
+            </div>
+            <button id="logoutBtn" style="background:none; border:none; color:#ff4b2b; cursor:pointer; font-size: 12px;">EXIT</button>
         </header>
+
         <div id="messages"></div>
+
         <div id="input-area">
-            <input type="text" id="msgInput" placeholder="Tulis pesan..." autocomplete="off">
+            <input type="text" id="msgInput" placeholder="Kirim transmisi..." autocomplete="off">
             <button id="sendBtn">➤</button>
         </div>
     </div>
@@ -313,11 +137,10 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getDatabase, ref, push, onChildAdded, serverTimestamp, query, limitToLast, off } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+  import { getDatabase, ref, push, onChildAdded, serverTimestamp, query, limitToLast } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
   import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-  // --- CONFIGURASI ANDA ---
-const firebaseConfig = {
+  const firebaseConfig = {
   apiKey: "AIzaSyDGwFXEHRArBauIOksrGmCgbC1fpVLkfMk",
   authDomain: "globalchat-innerverse.firebaseapp.com",
   databaseURL: "https://globalchat-innerverse-default-rtdb.firebaseio.com",
@@ -335,95 +158,65 @@ const firebaseConfig = {
   const chatRef = ref(db, 'chats');
 
   let currentUser = null;
-  let chatInitialized = false;
+  let initialized = false;
 
-  // --- AUTH LOGIC ---
-  document.getElementById('loginBtn').onclick = () => signInWithPopup(auth, provider).catch(err => console.error(err));
+  document.getElementById('loginBtn').onclick = () => signInWithPopup(auth, provider);
   document.getElementById('logoutBtn').onclick = () => signOut(auth);
 
   onAuthStateChanged(auth, (user) => {
-    const loginScreen = document.getElementById('login-screen');
-    const chatScreen = document.getElementById('chat-screen');
-    const messagesDiv = document.getElementById('messages');
-
     if (user) {
       currentUser = user;
-      document.getElementById('userName').textContent = user.displayName;
-      loginScreen.style.display = 'none';
-      chatScreen.style.display = 'flex';
-      
-      // Jalankan listener pesan HANYA JIKA sudah login
-      if (!chatInitialized) {
-        startChatListener();
-        chatInitialized = true;
-      }
+      document.getElementById('myName').textContent = user.displayName.toUpperCase();
+      document.getElementById('myAvatar').src = user.photoURL;
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('chat-screen').style.display = 'flex';
+      if(!initialized) { startChat(); initialized = true; }
     } else {
-      currentUser = null;
-      chatInitialized = false;
-      loginScreen.style.display = 'flex';
-      chatScreen.style.display = 'none';
-      messagesDiv.innerHTML = ''; // Hapus pesan dari layar saat logout
-      off(chatRef); // Matikan listener agar tidak memakan memori
+      document.getElementById('login-screen').style.display = 'flex';
+      document.getElementById('chat-screen').style.display = 'none';
     }
   });
 
-  // --- CHAT LOGIC ---
-  function startChatListener() {
+  function startChat() {
     const q = query(chatRef, limitToLast(50));
-    
-    onChildAdded(q, (snapshot) => {
-      const data = snapshot.val();
-      renderMessage(data);
+    onChildAdded(q, (snap) => {
+      const data = snap.val();
+      const messagesDiv = document.getElementById('messages');
+      const isMe = currentUser && data.uid === currentUser.uid;
+
+      const row = document.createElement('div');
+      row.className = `msg-row ${isMe ? 'me' : ''}`;
+
+      const avatar = document.createElement('img');
+      avatar.className = 'mini-avatar';
+      avatar.src = data.photo || 'https://via.placeholder.com/30';
+
+      const bubble = document.createElement('div');
+      bubble.className = 'bubble';
+      
+      const sender = document.createElement('span');
+      sender.className = 'sender-tag';
+      sender.textContent = isMe ? 'YOU' : data.sender.split(' ')[0];
+
+      const text = document.createElement('span');
+      text.textContent = data.text;
+
+      bubble.appendChild(sender);
+      bubble.appendChild(text);
+      row.appendChild(avatar);
+      row.appendChild(bubble);
+      messagesDiv.appendChild(row);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
     });
   }
 
-function renderMessage(data) {
-  const messagesDiv = document.getElementById('messages');
-  const div = document.createElement('div');
-  div.classList.add('msg');
-
-  if (currentUser && data.uid === currentUser.uid) {
-    div.classList.add('me');
-  }
-
-  const sender = document.createElement('span');
-  sender.className = 'sender';
-  sender.textContent = data.sender || 'Anonymous';
-
-  const text = document.createElement('span');
-  text.className = 'text';
-  text.textContent = data.text;
-
-  // timestamp (fallback jika belum ada)
-  const meta = document.createElement('div');
-  meta.className = 'meta';
-  const time = document.createElement('span');
-
-  const ts = data.timestamp;
-  let date = null;
-  if (typeof ts === 'number') date = new Date(ts);
-  // kalau RTDB ngasih object, biasanya sudah berubah jadi number setelah tersimpan;
-  // saat pertama render dari cache bisa null → fallback
-  time.textContent = date
-    ? date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
-    : '';
-
-  meta.appendChild(time);
-
-  div.appendChild(sender);
-  div.appendChild(text);
-  div.appendChild(meta);
-
-  messagesDiv.appendChild(div);
-  messagesDiv.scrollTop = messagesDiv.scrollHeight;
-}
-  const sendMsg = () => {
+  const send = () => {
     const input = document.getElementById('msgInput');
-    const val = input.value.trim();
-    if (val && currentUser) {
+    if (input.value.trim() && currentUser) {
       push(chatRef, {
-        text: val,
+        text: input.value,
         sender: currentUser.displayName,
+        photo: currentUser.photoURL, // Simpan foto ke database
         uid: currentUser.uid,
         timestamp: serverTimestamp()
       });
@@ -431,9 +224,8 @@ function renderMessage(data) {
     }
   };
 
-  document.getElementById('sendBtn').onclick = sendMsg;
-  document.getElementById('msgInput').onkeypress = (e) => { if(e.key === 'Enter') sendMsg(); };
+  document.getElementById('sendBtn').onclick = send;
+  document.getElementById('msgInput').onkeypress = (e) => { if (e.key === 'Enter') send(); };
 </script>
-
 </body>
 </html>
